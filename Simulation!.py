@@ -277,7 +277,7 @@ def testProbabilityAffect(p1, p2, resolution):
     probs = []
     for pr in np.arange(p1,p2, resolution):
         probs.append(pr)
-        results.append(testMicro(50, n=12, p=pr))
+        results.append(testMicro(300, n=12, p=pr))
     plt.scatter(probs, results, color='green')
 
 
@@ -324,10 +324,11 @@ def testFix(probability, numberOfPoints):
 
 # check if possible to render in without building all this expensive objects
 def extensiveModelRendering():
-    x = np.arange(0.5, 6.0, 0.01)
-    y = np.arange(3, 33, 2)
+    x = np.arange(0.5, 7.0, 0.01)
+    y = np.arange(3, 53, 2)
     X, Y = meshgrid(x, y)  # grid of point
-    Z = testFix(X, Y)  # evaluation of the function on the grid
+    #TODO: fix this in case you wish you yield, some modern result.
+    # Z = testFix(X, Y)  # evaluation of the function on the grid
 
     fig = plt.figure()
     ax = plt.axes(projection='3d')
@@ -350,8 +351,9 @@ def main():
 
     # print(testMajority(50, 12, 0.8))
     # testNumberOfNodesAffect(3, 301)
-    testProbabilityAffect(0.5, 0.9, 0.005)
+    # testProbabilityAffect(0.5, 0.9, 0.005)
     # testProbabilityAffect(0.8, 0.95, 0.001)
+    testProbabilityAffect(0.48,0.52,0.0005)
 
     # extensiveModelRendering()
 
