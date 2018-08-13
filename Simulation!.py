@@ -43,9 +43,9 @@ class StarGraph:
     def __init__(self, magic_number_of_nodes, probability_setting = MAGIC_Prob_Setting):
         #The Network Object
         # self.G = nx.erdos_renyi_graph(12, 0.6)
-        self.G = nx.star_graph(n=magic_number_of_nodes)
+        self.G = nx.star_graph(n=int(magic_number_of_nodes))
         #Modyfing for extra parameters
-        for i in range(magic_number_of_nodes + 1):
+        for i in range(int(magic_number_of_nodes) + 1):
             self.G.nodes[i][COMPETENCE_KEY] = np.random.uniform(probability_setting, 1)
             # Whats the difference here ?
             self.G.nodes[i][VOTES_KEY] = 1
@@ -277,7 +277,7 @@ def testProbabilityAffect(p1, p2, resolution):
     probs = []
     for pr in np.arange(p1,p2, resolution):
         probs.append(pr)
-        results.append(testMicro(300, n=12, p=pr))
+        results.append(testMicro(100, n=12, p=pr))
     plt.scatter(probs, results, color='green')
 
 
@@ -317,34 +317,50 @@ def testMajority(iterations, n = Number_of_satelite_nodes, p = MAGIC_Prob_Settin
 
 # Util for feeding the model.
 """
-Arguments order here is th oposite and we assume 5 independent samples.
+Arguments order here is th oposite and we assume 100 independent samples.
 """
 def testFix(probability, numberOfPoints):
-    return testMicro(5, n=numberOfPoints, p=probability)
+    return testMicro(100, n=numberOfPoints, p=probability)
 
 # check if possible to render in without building all this expensive objects
 def extensiveModelRendering():
-    x = np.arange(0.5, 7.0, 0.01)
-    y = np.arange(3, 53, 2)
-    X, Y = meshgrid(x, y)  # grid of point
-    #TODO: fix this in case you wish you yield, some modern result.
-    # Z = testFix(X, Y)  # evaluation of the function on the grid
+    # Data
+    x = np.arange(0.5, 0.6, 0.005)
+    y = np.arange(3, 43, 2)
+    X, Y = np.meshgrid(x, y)
+    # grid of point
+    # ax = fig.gca(projection='3d')
+
+    Z = np.array([testFix(x, y) for x, y in zip(X.flatten(), Y.flatten())])  # use of custom function
+    Z = Z.reshape(X.shape)
 
     fig = plt.figure()
-    ax = plt.axes(projection='3d')
-    ax.contour3D(X, Y, Z, 50, cmap='binary')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
-    ax.view_init(60, 35)
-    fig
+    ax = fig.axes(projection='3d')
 
+    # Plot the surface.
+    surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+
+    ax.scatter3D(X, Y, Z, c=Z, cmap='Greens');
+    # Customize the z axis.
+    ax.set_zlim(-1.01, 1.01)
+
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+    plt.show()
+    #
+    # ax.contour3D(X, Y, Z, 50, cmap='binary')
+    # ax.set_xlabel('proabilities')
+    # ax.set_ylabel('number of nodes')
+    # ax.set_zlabel('Gain by liquid')
+    # ax.view_init(60, 35)
+    #
+    # plt.show()
+    print("done")
 
 def SilyCaculation():
     star = StarGraph(12)
     star.setCompetence(0.9)
     x = star.majorityProb()
-    print(x)
 
 
 def main():
@@ -353,9 +369,9 @@ def main():
     # testNumberOfNodesAffect(3, 301)
     # testProbabilityAffect(0.5, 0.9, 0.005)
     # testProbabilityAffect(0.8, 0.95, 0.001)
-    testProbabilityAffect(0.48,0.52,0.0005)
+    # testProbabilityAffect(0.48,0.52,0.0005)
 
-    # extensiveModelRendering()
+    extensiveModelRendering()
 
 
 
