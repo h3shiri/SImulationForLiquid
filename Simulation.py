@@ -26,7 +26,8 @@ NumberOfNodes = sys.argv[2]
 
 """
 #Aka the probability we choose to sample for our nodes
-MAGIC_Prob_Setting = 0.8
+PLowerBound = 0.8
+ONE = 1
 
 Number_of_satelite_nodes = 12
 
@@ -39,19 +40,15 @@ COMPETENCE_KEY = 'competence'
 VOTES_KEY = 'votes'
 LIQUID_VOTES_KEY = 'liquid'
 
-class Counter:
-    Variable = 1
-
-
 class StarGraph:
 
-    def __init__(self, magic_number_of_nodes, probability_setting = MAGIC_Prob_Setting):
+    def __init__(self, magic_number_of_nodes, probability_setting = PLowerBound, upper_probability_bound = 1):
         #The Network Object
         # self.G = nx.erdos_renyi_graph(12, 0.6)
         self.G = nx.star_graph(n=int(magic_number_of_nodes))
         #Modyfing for extra parameters
         for i in range(int(magic_number_of_nodes) + 1):
-            self.G.nodes[i][COMPETENCE_KEY] = np.random.uniform(probability_setting, 1)
+            self.G.nodes[i][COMPETENCE_KEY] = np.random.uniform(probability_setting, upper_probability_bound)
             # Whats the difference here ?
             self.G.nodes[i][VOTES_KEY] = 1
             self.G.nodes[i][LIQUID_VOTES_KEY] = 1
@@ -280,7 +277,7 @@ def testProbabilityAffect(p1, p2, resolution):
     ODD_JUMP = 1
     results = []
     probs = []
-    for pr in np.arange(p1,p2, resolution):
+    for pr in np.arange(p1, p2, resolution):
         probs.append(pr)
         results.append(testMicro(100, n=12, p=pr))
     plt.scatter(probs, results, color='green')
@@ -302,31 +299,29 @@ p - the probability setting, default 0.8
 iterations - number of times to average the results
 @:return - the approximated probability
 """
-def testMicro(iterations, n = Number_of_satelite_nodes, p = MAGIC_Prob_Setting):
+def testMicro(iterations, n = Number_of_satelite_nodes, p = PLowerBound, p_max = 1):
     avg = 0
     for i in range(iterations):
-        Star = StarGraph(n, p)
+        Star = StarGraph(n, p, p_max)
         Star.buildApprovalGraph()
         Star.updateVotesTokens()
         avg += Star.gain()
     res = avg/iterations
     return res
 
-def testMajority(iterations, n = Number_of_satelite_nodes, p = MAGIC_Prob_Setting):
+def testMajority(iterations, n = Number_of_satelite_nodes, p = PLowerBound, p_max = 1):
     avg = 0
     for i in range(iterations):
-        Star = StarGraph(n, p)
+        Star = StarGraph(n, p, p_max)
         avg += Star.majorityProb()
     res = avg/iterations
     return res
 
 # Util for feeding the model.
 """
-Arguments order here is the oposite and we assume 100 independent samples.
+Arguments order here is th oposite and we assume 100 independent samples.
 """
 def testFix(probability, numberOfPoints):
-    print(Counter.Variable)
-    Counter.Variable += 1
     return testMicro(100, n=numberOfPoints, p=probability)
 
 # check if possible to render in without building all this expensive objects
@@ -362,6 +357,33 @@ def extensiveModelRendering():
     # plt.show()
     print("done")
 
+#Searching for anomalies within given ranges of p_i.
+"""
+@p1 - lower bound
+@p2 - upper bound
+@iterations - number of runs for the code
+@resolution - the granularity of the intervals being tested.
+graph relevant outcomes as a relation between probabilities to majority. 
+"""
+def testProabilityBounds(p1,p2, iterations, resolution):
+    p_l = p1
+    res = []
+    results = []
+    probs = []
+    for pr in np.arange(p1, p2, resolution):
+        probs.append((2*pr+resolution)/2)
+        results.append(testMicro(iterations, n=2, p=p1, p_max=(pr+resolution)))
+    plt.scatter(probs, results, color='green')
+
+    plt.xlabel("Mean_probability")
+    plt.ylabel("Gain_by_liquid")
+    green_patch = mpatches.Patch(color='green', label='testing competence levels small intervals')
+    plt.legend(handles=[green_patch], loc=2)
+    fig = plt.figure()
+    fig.patch.set_facecolor('black')
+    plt.show()
+
+
 def SilyCaculation():
     star = StarGraph(12)
     star.setCompetence(0.9)
@@ -369,13 +391,14 @@ def SilyCaculation():
 
 
 def main():
+
     # print(testMajority(50, 12, 0.8))
     # testNumberOfNodesAffect(3, 301)
     # testProbabilityAffect(0.5, 0.9, 0.005)
     # testProbabilityAffect(0.8, 0.95, 0.001)
     # testProbabilityAffect(0.48,0.52,0.0005)
-
-    extensiveModelRendering()
+    testProabilityBounds(0.4, 0.7, 400, 0.01)
+    # extensiveModelRendering()
 
 
 
