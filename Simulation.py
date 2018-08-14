@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from pylab import meshgrid,cm,imshow,contour,clabel,colorbar,axis,title,show
+from mpl_toolkits.mplot3d import Axes3D
 
 # from .Node import SimpleNode
 import sys
@@ -37,6 +38,10 @@ ZERO = 0
 COMPETENCE_KEY = 'competence'
 VOTES_KEY = 'votes'
 LIQUID_VOTES_KEY = 'liquid'
+
+class Counter:
+    Variable = 1
+
 
 class StarGraph:
 
@@ -317,35 +322,35 @@ def testMajority(iterations, n = Number_of_satelite_nodes, p = MAGIC_Prob_Settin
 
 # Util for feeding the model.
 """
-Arguments order here is th oposite and we assume 100 independent samples.
+Arguments order here is the oposite and we assume 100 independent samples.
 """
 def testFix(probability, numberOfPoints):
+    print(Counter.Variable)
+    Counter.Variable += 1
     return testMicro(100, n=numberOfPoints, p=probability)
 
 # check if possible to render in without building all this expensive objects
 def extensiveModelRendering():
     # Data
-    x = np.arange(0.5, 0.6, 0.005)
-    y = np.arange(3, 43, 2)
+    x = np.arange(0.5, 0.6, 0.01)
+    y = np.arange(3, 23, 2)
     X, Y = np.meshgrid(x, y)
     # grid of point
     # ax = fig.gca(projection='3d')
-
-    Z = np.array([testFix(x, y) for x, y in zip(X.flatten(), Y.flatten())])  # use of custom function
+    Z = np.array([10*testFix(x, y) for x, y in zip(X.flatten(), Y.flatten())])  # use of custom function
+    print("out")
     Z = Z.reshape(X.shape)
-
     fig = plt.figure()
-    ax = fig.axes(projection='3d')
-
+    ax = fig.gca(projection='3d')
     # Plot the surface.
     surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
 
-    ax.scatter3D(X, Y, Z, c=Z, cmap='Greens');
+    ax.scatter3D(X, Y, Z, c = 'b', marker='o')
     # Customize the z axis.
     ax.set_zlim(-1.01, 1.01)
 
     # Add a color bar which maps values to colors.
-    fig.colorbar(surf, shrink=0.5, aspect=5)
+    # fig.colorbar(surf, shrink=0.5, aspect=5)
     plt.show()
     #
     # ax.contour3D(X, Y, Z, 50, cmap='binary')
@@ -364,7 +369,6 @@ def SilyCaculation():
 
 
 def main():
-
     # print(testMajority(50, 12, 0.8))
     # testNumberOfNodesAffect(3, 301)
     # testProbabilityAffect(0.5, 0.9, 0.005)
