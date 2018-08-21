@@ -40,6 +40,9 @@ COMPETENCE_KEY = 'competence'
 VOTES_KEY = 'votes'
 LIQUID_VOTES_KEY = 'liquid'
 
+PROBS_KEY = 'Probs'
+RESULTS_KEY = 'results'
+
 class StarGraph:
 
     def __init__(self, magic_number_of_nodes, probability_setting = PLowerBound, upper_probability_bound = 1):
