@@ -373,6 +373,7 @@ def testProabilityBounds(p1,p2, iterations, resolution):
     for pr in np.arange(p1, p2, resolution):
         probs.append((2*pr+resolution)/2)
         results.append(testMicro(iterations, n=2, p=p1, p_max=(pr+resolution)))
+
     plt.scatter(probs, results, color='green')
 
     plt.xlabel("Mean_probability")
@@ -402,6 +403,34 @@ def main():
 
 
 
+def savingResults(name, p1,p2, iterations, resolution):
+
+    results = []
+    probs = []
+    for pr in np.arange(p1, p2, resolution):
+        probs.append((2 * pr + resolution) / 2)
+        results.append(testMicro(iterations, n=2, p=p1, p_max=(pr + resolution)))
+    resultsSet = list(zip(probs, results))
+    df = pd.DataFrame(data=resultsSet, columns=[PROBS_KEY, RESULTS_KEY])
+    df.to_csv('Data/tightProbabilities' + name + '.csv', index=False, header=False)
+
+
+def graphFromResults(dataFileName):
+    path = r'/Users/asgard/UNI-2.0/Collection/Liquid Democracy/Dissertation/ABM/Take 2/boltzmann_wealth_model_network/wealth_model/Data/tightProbabilities'
+    location = path + dataFileName + '.csv'
+    df = pd.read_csv(location, header=None, names=[PROBS_KEY, RESULTS_KEY])
+    probs = df[PROBS_KEY]
+    results = df[RESULTS_KEY]
+
+    plt.scatter(probs, results, color='green')
+
+    plt.xlabel("Mean_probability")
+    plt.ylabel("Gain_by_liquid")
+    green_patch = mpatches.Patch(color='green', label='testing competence levels small intervals')
+    plt.legend(handles=[green_patch], loc=2)
+    fig = plt.figure()
+    fig.patch.set_facecolor('black')
+    plt.show()
 
 if __name__ == '__main__':
     main()
