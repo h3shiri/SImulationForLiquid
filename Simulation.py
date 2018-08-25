@@ -1,7 +1,7 @@
 
 import os
 import sys
-
+import pandas as pd
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
@@ -35,13 +35,13 @@ STEP = 1
 ERROR = -1
 ZERO = 0
 
+
+PROBS_KEY = 'Probs'
+RESULTS_KEY = 'results'
 #Ledger to get different nodes competences
 COMPETENCE_KEY = 'competence'
 VOTES_KEY = 'votes'
 LIQUID_VOTES_KEY = 'liquid'
-
-PROBS_KEY = 'Probs'
-RESULTS_KEY = 'results'
 
 class StarGraph:
 
@@ -133,7 +133,6 @@ class StarGraph:
         competence_list = [x[DICT][COMPETENCE_KEY] for x in self.G.nodes(data=True)]
         return Majority_function(competence_list)
 
-    #TODO: Implement this function
     #consider how to solve this architecture issue
     def liquidProb(self):
         DICT = 1
@@ -239,7 +238,9 @@ def Liquid_function(votes_list, competence_list):
         sum = 0
         for i in col:
             sum += votes_list[i]
+
         #TODO: tie breaking conditions
+        #For now we just ignore that sub selection of cases
         if sum > (n / 2):
             res += prob_liquid_coalition(col, active_voters, competence_list)
     return res
@@ -255,7 +256,7 @@ def testNumberOfNodesAffect(m,n):
     results = []
     sizes = list(range(m,n,ODD_JUMP))
 
-    for n in range(m,n,ODD_JUMP):
+    for n in range(m, n, ODD_JUMP):
 
         results.append(testMicro(50, n=m))
 
@@ -336,6 +337,9 @@ def extensiveModelRendering():
     # grid of point
     # ax = fig.gca(projection='3d')
     Z = np.array([10*testFix(x, y) for x, y in zip(X.flatten(), Y.flatten())])  # use of custom function
+    file = 'results'
+
+    np.save()
     print("out")
     Z = Z.reshape(X.shape)
     fig = plt.figure()
@@ -369,6 +373,7 @@ def extensiveModelRendering():
 graph relevant outcomes as a relation between probabilities to majority. 
 """
 def testProabilityBounds(p1,p2, iterations, resolution):
+
     p_l = p1
     res = []
     results = []
@@ -393,26 +398,21 @@ def SilyCaculation():
     star.setCompetence(0.9)
     x = star.majorityProb()
 
+"""
+@name - saving to this name extension
+@p1 - lower probability bound
+@p2 - higher probability bound
+@iterations - number of the Monte Carlo simulations steps.
+@resolution - the size of the steps we wish to preform
 
-def main():
-
-    # print(testMajority(50, 12, 0.8))
-    # testNumberOfNodesAffect(3, 301)
-    # testProbabilityAffect(0.5, 0.9, 0.005)
-    # testProbabilityAffect(0.8, 0.95, 0.001)
-    # testProbabilityAffect(0.48,0.52,0.0005)
-    testProabilityBounds(0.4, 0.7, 400, 0.01)
-    # extensiveModelRendering()
-
-
-
+"""
 def savingResults(name, p1,p2, iterations, resolution):
 
     results = []
     probs = []
     for pr in np.arange(p1, p2, resolution):
         probs.append((2 * pr + resolution) / 2)
-        results.append(testMicro(iterations, n=2, p=p1, p_max=(pr + resolution)))
+        results.append(testMicro(iterations, n=10, p=p1, p_max=(pr + resolution)))
     resultsSet = list(zip(probs, results))
     df = pd.DataFrame(data=resultsSet, columns=[PROBS_KEY, RESULTS_KEY])
     df.to_csv('Data/tightProbabilities' + name + '.csv', index=False, header=False)
@@ -430,10 +430,61 @@ def graphFromResults(dataFileName):
     plt.xlabel("Mean_probability")
     plt.ylabel("Gain_by_liquid")
     green_patch = mpatches.Patch(color='green', label='testing competence levels small intervals')
-    plt.legend(handles=[green_patch], loc=2)
+    data_patch = mpatches.Patch(color='blue', label=dataFileName)
+    plt.legend(handles=[green_patch, data_patch], loc=2)
     fig = plt.figure()
     fig.patch.set_facecolor('black')
     plt.show()
+
+def graphMultipleFiles(array_of_data_files):
+    colormap = plt.cm.gist_ncar
+    colors = ['green', 'blue', 'brown', 'red', 'yellow']
+    i = 0
+    data_patches = []
+    for dataFileName in array_of_data_files:
+        path = r'/Users/asgard/UNI-2.0/Collection/Liquid Democracy/Dissertation/ABM/Take 2/boltzmann_wealth_model_network/wealth_model/Data/tightProbabilities'
+        location = path + dataFileName + '.csv'
+        df = pd.read_csv(location, header=None, names=[PROBS_KEY, RESULTS_KEY])
+        probs = df[PROBS_KEY]
+        results = df[RESULTS_KEY]
+        plt.scatter(probs, results, color=colors[i])
+        data_patches.append(mpatches.Patch(color=colors[i], label=array_of_data_files[i]))
+        i += 1
+
+    plt.legend(handles=data_patches, loc=2)
+
+    plt.xlabel("Mean_probability")
+    plt.ylabel("Gain_by_liquid")
+    # fig = plt.figure()
+    plt.show()
+
+
+
+def main():
+
+    # print(testMajority(50, 12, 0.8))
+    # testNumberOfNodesAffect(3, 301)
+    # testProbabilityAffect(0.5, 0.9, 0.005)
+    # testProbabilityAffect(0.8, 0.95, 0.001)
+    # testProbabilityAffect(0.48,0.52,0.0005)
+    # testProabilityBounds(0.5, 0.9, 400, 0.02)
+    # extensiveModelRendering()
+    # savingResults("test1", 0.1, 0.9, 400, 0.02)
+    # savingResults("test2", 0.1, 0.9, 1000, 0.02)
+
+    #Here thenumber of neighbers was set to n=10
+    savingResults("test2.5", 0.1, 0.9, 1000, 0.02)
+
+    #Here we changed the number of n=12
+    # savingResults("test3", 0.1, 0.9, 1000, 0.02)
+
+    #Here n=15
+    # savingResults("test4", 0.1, 0.9, 1000, 0.02)
+
+
+    graphMultipleFiles(['test4', 'test3', 'test2.5', 'test2'])
+
+
 
 if __name__ == '__main__':
     main()
